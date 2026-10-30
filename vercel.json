@@ -1,0 +1,8 @@
+{
+  "build": {
+    "env": {
+      "VITE_API_URL": "https://day-counter-backend.onrender.com"
+    }
+  },
+  "framework": "vite"
+}

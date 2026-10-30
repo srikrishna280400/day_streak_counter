@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: day-counter-frontend
+    env: static
+    plan: free
+    buildCommand: echo "Skipped — Frontend built in repo"
+    startCommand: npx vite preview --port $PORT --host --dist ./dist
+    rootDir: .
+    autoDeploy: true
+
+  - type: web
+    name: day-counter-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
