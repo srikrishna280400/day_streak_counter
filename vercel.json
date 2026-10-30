@@ -1,8 +1,10 @@
 {
-  "build": {
-    "env": {
-      "VITE_API_URL": "https://day-counter-backend.onrender.com"
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://day-streak-counter-1.onrender.com/api/$1"
     }
-  },
-  "framework": "vite"
+  ]
 }
