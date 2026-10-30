@@ -3,14 +3,14 @@ import './App.css';
 
 interface StreakRecord {
   id: number;
-  startDate: string;   // ISO string
-  endDate: string;     // ISO string (or null if ongoing)
+  startDate: string;
+  endDate: string;
   durationDays: number;
 }
 
 interface StreakData {
   records: StreakRecord[];
-  currentStart: string | null; // ISO string of current streak start
+  currentStart: string | null;
   cumulativeMonthly: Record<string, number>;
   cumulativeYearly: Record<string, number>;
 }
@@ -41,7 +41,7 @@ function diffSeconds(start: Date, end: Date): number {
 }
 
 function monthKey(date: Date): string {
-  return date.toISOString().slice(0, 7); // YYYY-MM
+  return date.toISOString().slice(0, 7);
 }
 
 function yearKey(date: Date): string {
@@ -82,24 +82,6 @@ function App() {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [isTracking, data.currentStart]);
-
-  // Save current streak end when stopping
-  useEffect(() => {
-    if (!isTracking && data.currentStart) {
-      const end = new Date();
-      const durationDays = Math.floor(diffSeconds(new Date(data.currentStart), end) / 86400);
-      const newRecord: StreakRecord = {
-        id: Date.now(),
-        startDate: data.currentStart,
-        endDate: end.toISOString(),
-        durationDays
-      };
-      setData(prev => ({
-        ...prev,
-        records: [...prev.records, newRecord]
-      }));
-    }
   }, [isTracking, data.currentStart]);
 
   const handleStart = () => {

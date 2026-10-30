@@ -10,3 +10,4 @@ build
 .vite
 dist-ssr
 *.local
+server_node_modules
