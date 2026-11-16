@@ -240,10 +240,10 @@ function App() {
         <div className="slot-section">
           <label className="slot-label">Start at</label>
 
-          {/* Date trigger */}
-          <button type="button" className="date-trigger" onClick={openPicker}>
+          {/* Date trigger - toggle on/off like hour/minute dropdowns */}
+          <button type="button" className={`date-trigger ${pickerOpen ? 'open' : ''}`} onClick={() => setPickerOpen(!pickerOpen)}>
             <span className="date-trigger-text">{selectedDisplay}</span>
-            <span className="date-trigger-chevron">▾</span>
+            <span className="date-trigger-chevron">{pickerOpen ? '▲' : '▾'}</span>
           </button>
 
           {/* Picker panel */}
