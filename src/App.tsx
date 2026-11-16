@@ -29,8 +29,6 @@ function emptyData(): StreakData {
 function normalize(raw: unknown): StreakData {
   if (!raw || typeof raw !== 'object') return emptyData();
   const r = raw as Record<string, any>;
-  const base = emptyData();
-
   const records: StreakRecord[] = Array.isArray(r.records)
     ? r.records
         .filter((x: any) => x && typeof x.startDate === 'string' && typeof x.endDate === 'string')
@@ -74,13 +72,15 @@ function elapsedSeconds(startISO: string, now: Date = new Date()): number {
 }
 
 function monthKey(date: Date): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit' })
-    .format(date)
-    .slice(0, 7);
+  return date.toISOString().slice(0, 7);
 }
 
 function yearKey(date: Date): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric' }).format(date);
+  return date.getFullYear().toString();
+}
+
+function pad(n: number): string {
+  return n.toString().padStart(2, '0');
 }
 
 function formatForISO(date: Date): string {
@@ -93,6 +93,7 @@ const HOUR_SLOTS = Array.from({ length: 24 }, (_, h) => {
   const twelve = h % 12 === 0 ? 12 : h % 12;
   return `${twelve}${suffix}`;
 });
+
 const QUARTER_SLOTS = [':00', ':15', ':30', ':45'];
 
 function App() {
@@ -114,7 +115,7 @@ function App() {
     }
     setData(loaded);
     setHydrated(true);
-    // Pre-fill the date slot with "today" so user can adjust it
+    // Pre-fill selected date with today
     setSlotDate(formatForISO(new Date()));
   }, []);
 
@@ -126,7 +127,7 @@ function App() {
     } catch {}
   }, [data, hydrated]);
 
-  // Re-render every minute while streak is active (no second-by-second)
+  // Re-render every minute while streak is active
   const isRunning = data.currentStart !== null;
   useEffect(() => {
     if (!isRunning) return;
@@ -139,21 +140,13 @@ function App() {
     [data.currentStart, now]
   );
 
-  // Start: uses the selected date + hour + 15-min slot
+  // Start: builds ISO from selected date + hour + 15-min slot
   const handleStart = () => {
     if (!slotDate) return;
-    const [d, h, m] = resolveSlot(slotDate, slotHour, slotMinute);
-    if (!d) return;
-    const startDate = new Date(`${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+    const startDate = new Date(slotDate);
+    startDate.setHours(parseInt(slotHour), parseInt(slotMinute), 0, 0);
     setData(prev => ({ ...prev, currentStart: startDate.toISOString() }));
     setNow(new Date());
-  };
-
-  const resolveSlot = (d: string, h: string, m: string): [string | null, number, number] => {
-    if (!d) return [null, 0, 0];
-    const hour = parseInt(h);
-    const minute = parseInt(m);
-    return [formatForISO(new Date(d)), hour, minute];
   };
 
   // Reset: the ONLY way a record is created
@@ -167,7 +160,6 @@ function App() {
     };
     const m = monthKey(end);
     const y = yearKey(end);
-
     setData(prev => ({
       ...prev,
       records: [...prev.records, record],
@@ -182,7 +174,6 @@ function App() {
     setData(prev => {
       const record = prev.records.find(r => r.id === id);
       if (!record) return prev;
-
       const end = new Date(record.endDate);
       const m = monthKey(end);
       const y = yearKey(end);
@@ -190,7 +181,6 @@ function App() {
       const yearly = { ...prev.cumulativeYearly };
       if (monthly[m]) monthly[m] = Math.max(0, monthly[m] - 1);
       if (yearly[y]) yearly[y] = Math.max(0, yearly[y] - 1);
-
       return {
         ...prev,
         records: prev.records.filter(r => r.id !== id),
@@ -214,7 +204,7 @@ function App() {
       <div className="card">
         <h1 className="title">Streak Tracker</h1>
 
-        {/* Live counter — derived from stored start time, immune to refresh */}
+        {/* Live counter */}
         <div className={`current-section ${isRunning ? 'is-running' : ''}`}>
           <div className="stat-label">{isRunning ? 'Active Streak' : 'No Active Streak'}</div>
           <div className="stat-value mono">{isRunning ? formatDuration(currentSeconds) : '--:--:--'}</div>
