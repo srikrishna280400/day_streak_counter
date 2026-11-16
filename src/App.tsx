@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import './App.css';
 
 interface StreakRecord {
   id: number;
-  startDate: string;
-  endDate: string;
+  startDate: string;   // ISO string
+  endDate: string;     // ISO string
 }
 
 interface StreakData {
@@ -38,7 +38,6 @@ function normalize(raw: unknown): StreakData {
           endDate: x.endDate
         }))
     : [];
-
   return {
     records,
     currentStart: typeof r.currentStart === 'string' ? r.currentStart : null,
@@ -79,30 +78,74 @@ function yearKey(date: Date): string {
   return date.getFullYear().toString();
 }
 
+function monthLabel(date: Date): string {
+  return date.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
+}
+
 function pad(n: number): string {
   return n.toString().padStart(2, '0');
 }
 
-function formatForISO(date: Date): string {
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+function formatForDateInput(date: Date): string {
+  return date.toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
-const HOUR_SLOTS = Array.from({ length: 24 }, (_, h) => {
-  const suffix = h < 12 ? 'am' : 'pm';
-  const twelve = h % 12 === 0 ? 12 : h % 12;
-  return `${twelve}${suffix}`;
-});
-
-const QUARTER_SLOTS = [':00', ':15', ':30', ':45'];
+// Generate last N days including today
+function generateDateRange(n: number): Date[] {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days: Date[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(d);
+  }
+  return days;
+}
 
 function App() {
   const [data, setData] = useState<StreakData>(emptyData);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const [slotDate, setSlotDate] = useState<string>('');
-  const [slotHour, setSlotHour] = useState<string>('0');
-  const [slotMinute, setSlotMinute] = useState<string>('0');
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [selectedHour, setSelectedHour] = useState<string>('0');
+  const [selectedMinute, setSelectedMinute] = useState<string>('0');
+  const [datePickerMonth, setDatePickerMonth] = useState<Date>(() => new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // HOUR_SLOTS: 12am, 1am, ... 11pm
+  const HOUR_SLOTS = Array.from({ length: 24 }, (_, h) => {
+    const suffix = h < 12 ? 'am' : 'pm';
+    const twelve = h % 12 === 0 ? 12 : h % 12;
+    return `${twelve}${suffix}`;
+  });
+  const QUARTER_SLOTS = [':00', ':15', ':30', ':45'];
+
+  // Generate grid of dates for the current picker month
+  const monthDates = useMemo(() => {
+    const year = datePickerMonth.getFullYear();
+    const month = datePickerMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startDayOfWeek = firstDay.getDay(); // 0 = Sun, 6 = Sat
+    const days: Date[] = [];
+    // Fill with leading empty slots (empty Dates)
+    for (let i = 0; i < startDayOfWeek; i++) {
+      days.push(new Date(0)); // sentinel
+    }
+    // Fill actual dates
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(new Date(year, month, d));
+    }
+    // Pad with trailing empties to complete weeks
+    const totalDays = days.length;
+    const remaining = (7 - (totalDays % 7)) % 7;
+    for (let i = 0; i < remaining; i++) {
+      days.push(new Date(0)); // sentinel
+    }
+    return days;
+  }, [datePickerMonth]);
 
   // Load once on mount. Nothing written until hydrated.
   useEffect(() => {
@@ -116,7 +159,7 @@ function App() {
     setData(loaded);
     setHydrated(true);
     // Pre-fill selected date with today
-    setSlotDate(formatForISO(new Date()));
+    setSelectedDate(formatForDateInput(new Date()));
   }, []);
 
   // Persist only after hydration
@@ -141,16 +184,17 @@ function App() {
   );
 
   // Start: builds ISO from selected date + hour + 15-min slot
-  const handleStart = () => {
-    if (!slotDate) return;
-    const startDate = new Date(slotDate);
-    startDate.setHours(parseInt(slotHour), parseInt(slotMinute), 0, 0);
+  const handleStart = useCallback(() => {
+    if (!selectedDate) return;
+    const [h, m] = [parseInt(selectedHour), parseInt(selectedMinute)];
+    const startDate = new Date(selectedDate);
+    startDate.setHours(h, m, 0, 0);
     setData(prev => ({ ...prev, currentStart: startDate.toISOString() }));
     setNow(new Date());
-  };
+  }, [selectedDate, selectedHour, selectedMinute]);
 
   // Reset: the ONLY way a record is created
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (!data.currentStart) return;
     const end = new Date();
     const record: StreakRecord = {
@@ -167,8 +211,8 @@ function App() {
       cumulativeMonthly: { ...prev.cumulativeMonthly, [m]: (prev.cumulativeMonthly[m] || 0) + 1 },
       cumulativeYearly: { ...prev.cumulativeYearly, [y]: (prev.cumulativeYearly[y] || 0) + 1 }
     }));
-    setSlotDate(formatForISO(new Date()));
-  };
+    setSelectedDate(formatForDateInput(new Date()));
+  }, [data.currentStart]);
 
   const handleDelete = (id: number) => {
     setData(prev => {
@@ -199,6 +243,9 @@ function App() {
   const currentMonth = monthKey(now);
   const currentYear = yearKey(now);
 
+  const isDateSelected = (d: Date) => d.toISOString().slice(0, 10) === selectedDate;
+  const isToday = (d: Date) => d.toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+
   return (
     <div className="container">
       <div className="card">
@@ -215,29 +262,79 @@ function App() {
           </div>
         </div>
 
-        {/* Date+time slot selection */}
+        {/* Date/time slot selection */}
         <div className="slot-section">
           <label className="slot-label">Start at</label>
-          <div className="slot-row">
-            <select value={slotDate} onChange={(e) => setSlotDate(e.target.value)} className="slot-input">
-              <option value="">Select date</option>
-              {Array.from({ length: 365 }, (_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - 365 + i);
-                const iso = d.toISOString().slice(0, 10);
-                return <option key={iso} value={iso}>{d.toLocaleDateString()}</option>;
-              })}
-            </select>
-            <select value={slotHour} onChange={(e) => setSlotHour(e.target.value)} className="slot-input">
-              {HOUR_SLOTS.map((label, i) => (
-                <option key={i} value={String(i)}>{label}</option>
-              ))}
-            </select>
-            <select value={slotMinute} onChange={(e) => setSlotMinute(e.target.value)} className="slot-input">
-              {QUARTER_SLOTS.map((label, i) => (
-                <option key={i} value={String(i * 15)}>{label}</option>
-              ))}
-            </select>
+
+          {/* Custom date picker trigger */}
+          <div className="date-picker-section">
+            <button className="date-picker-trigger" onClick={() => setShowDatePicker(!showDatePicker)}>
+              {selectedDate ? (
+                <>
+                  <span className="date-display-day">{new Date(selectedDate).getDate()}</span>
+                  <span className="date-display-month">
+                    {new Date(selectedDate).toLocaleString('en-IN', { month: 'short' })}
+                  </span>
+                </>
+              ) : (
+                <span>Select date</span>
+              )}
+            </button>
+
+            {/* Date picker grid */}
+            {showDatePicker && (
+              <div className="date-picker-grid">
+                <div className="date-picker-header">
+                  <button
+                    className="nav-btn prev"
+                    onClick={() => setDatePickerMonth(prev => { const nd = new Date(prev); nd.setMonth(nd.getMonth() - 1); return nd; })}
+                  >
+                    ‹
+                  </button>
+                  <span className="month-year">{monthLabel(datePickerMonth)}</span>
+                  <button
+                    className="nav-btn next"
+                    onClick={() => setDatePickerMonth(prev => { const nd = new Date(prev); nd.setMonth(nd.getMonth() + 1); return nd; })}
+                  >
+                    ›
+                  </button>
+                </div>
+
+                <div className="date-grid">
+                  {monthDates.map((d, i) => (
+                    <button
+                      key={i}
+                      className={`date-tile ${isDateSelected(d) ? 'selected' : ''} ${isToday(d) ? 'today' : ''}`}
+                      onClick={() => { setSelectedDate(formatForDateInput(d)); setShowDatePicker(false); }}
+                    >
+                      {d.getDate()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Hour + Minute selects */}
+            <div className="time-selects">
+              <select
+                value={selectedHour}
+                onChange={(e) => setSelectedHour(e.target.value)}
+                className="time-select"
+              >
+                {HOUR_SLOTS.map((label, i) => (
+                  <option key={i} value={String(i)}>{label}</option>
+                ))}
+              </select>
+              <select
+                value={selectedMinute}
+                onChange={(e) => setSelectedMinute(e.target.value)}
+                className="time-select"
+              >
+                {QUARTER_SLOTS.map((label, i) => (
+                  <option key={i} value={String(i * 15)}>{label}</option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
