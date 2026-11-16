@@ -65,9 +65,8 @@ function formatDuration(seconds: number): string {
   const days = Math.floor(seconds / 86400);
   const hrs = Math.floor((seconds % 86400) / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  const hhmmss = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  return days > 0 ? `${days}d ${hhmmss}` : hhmmss;
+  const hhmm = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  return days > 0 ? `${days}d ${hhmm}` : hhmm;
 }
 
 function elapsedSeconds(startISO: string, now: Date = new Date()): number {
@@ -84,17 +83,21 @@ function yearKey(date: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric' }).format(date);
 }
 
-// Format a Date as YYYY-MM-DDTHH:MM for <input type="datetime-local"> (local time = IST)
-function formatForDatetimeLocal(date: Date): string {
+function formatForISO(date: Date): string {
   const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
+
+const HOUR_BLOCKS = ['12am–4am', '4am–8am', '8am–12pm', '12pm–4pm', '4pm–8pm', '8pm–12am'];
+const QUARTER_SLOTS = [':00', ':15', ':30', ':45'];
 
 function App() {
   const [data, setData] = useState<StreakData>(emptyData);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => new Date());
-  const [slotValue, setSlotValue] = useState<string>('');
+  const [slotDate, setSlotDate] = useState<string>('');
+  const [slotBlock, setSlotBlock] = useState<string>('0');
+  const [slotMinute, setSlotMinute] = useState<string>('0');
 
   // Load once on mount. Nothing written until hydrated.
   useEffect(() => {
@@ -107,8 +110,8 @@ function App() {
     }
     setData(loaded);
     setHydrated(true);
-    // Pre-fill the datetime slot with "now" so user can adjust it
-    setSlotValue(formatForDatetimeLocal(new Date()));
+    // Pre-fill the date slot with "today" so user can adjust it
+    setSlotDate(formatForISO(new Date()));
   }, []);
 
   // Persist only after hydration
@@ -119,11 +122,11 @@ function App() {
     } catch {}
   }, [data, hydrated]);
 
-  // Re-render every second while streak is active
+  // Re-render every minute while streak is active (no second-by-second)
   const isRunning = data.currentStart !== null;
   useEffect(() => {
     if (!isRunning) return;
-    const t = window.setInterval(() => setNow(new Date()), 1000);
+    const t = window.setInterval(() => setNow(new Date()), 60000);
     return () => window.clearInterval(t);
   }, [isRunning]);
 
@@ -132,12 +135,29 @@ function App() {
     [data.currentStart, now]
   );
 
-  // Start: uses the selected date+time slot
+  // Start: uses the selected date+time slot + 15-min block
   const handleStart = () => {
-    const selected = slotValue || new Date().toISOString();
-    const startDate = new Date(selected);
+    const [d, h, m] = resolveSlot(slotDate, slotBlock, slotMinute);
+    if (!d) return;
+    const startDate = new Date(`${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
     setData(prev => ({ ...prev, currentStart: startDate.toISOString() }));
     setNow(new Date());
+  };
+
+  const resolveSlot = (date: string, hourBlock: string, minSlot: string): [string | null, number, number] => {
+    if (!date) return [null, 0, 0];
+    const d = new Date(date);
+    const hourMap: Record<string, number> = {
+      '0': 0,   // 12am–4am → hour 0
+      '1': 4,   // 4am–8am → hour 4
+      '2': 8,   // 8am–12pm → hour 8
+      '3': 12,  // 12pm–4pm → hour 12
+      '4': 16,  // 4pm–8pm → hour 16
+      '5': 20,  // 8pm–12am → hour 20
+    };
+    const hour = hourMap[hourBlock] ?? 0;
+    const minute = parseInt(minSlot) * 15;
+    return [formatForISO(d), hour, minute];
   };
 
   // Reset: the ONLY way a record is created
@@ -159,7 +179,7 @@ function App() {
       cumulativeMonthly: { ...prev.cumulativeMonthly, [m]: (prev.cumulativeMonthly[m] || 0) + 1 },
       cumulativeYearly: { ...prev.cumulativeYearly, [y]: (prev.cumulativeYearly[y] || 0) + 1 }
     }));
-    setSlotValue(formatForDatetimeLocal(new Date()));
+    setSlotDate(formatForISO(new Date()));
   };
 
   const handleDelete = (id: number) => {
@@ -213,12 +233,30 @@ function App() {
         <div className="slot-section">
           <label className="slot-label">Start at</label>
           <input
-            type="datetime-local"
-            value={slotValue}
-            onChange={(e) => setSlotValue(e.target.value)}
+            type="date"
+            value={slotDate}
+            onChange={(e) => setSlotDate(e.target.value)}
             className="slot-input"
-            min="2020-01-01T00:00"
+            min="2020-01-01"
           />
+          <select
+            value={slotBlock}
+            onChange={(e) => setSlotBlock(e.target.value)}
+            className="slot-input"
+          >
+            {HOUR_BLOCKS.map((label, i) => (
+              <option key={i} value={String(i)}>{label}</option>
+            ))}
+          </select>
+          <select
+            value={slotMinute}
+            onChange={(e) => setSlotMinute(e.target.value)}
+            className="slot-input"
+          >
+            {QUARTER_SLOTS.map((label, i) => (
+              <option key={i} value={String(i * 15)}>{label}</option>
+            ))}
+          </select>
         </div>
 
         {/* Actions */}
