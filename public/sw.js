@@ -1,7 +1,7 @@
 // Day Counter PWA Service Worker — v2
 // Network-first for HTML, cache-first for static assets
 
-const CACHE_NAME = 'day-counter-v3';
+const CACHE_NAME = 'day-counter-v4';
 const STATIC_ASSETS = [
   '/',
   '/index.html',

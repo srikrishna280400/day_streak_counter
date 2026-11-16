@@ -88,7 +88,8 @@ function formatForISO(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-const HOUR_BLOCKS = ['12am–4am', '4am–8am', '8am–12pm', '12pm–4pm', '4pm–8pm', '8pm–12am'];
+const HOUR_SLOTS = Array.from({ length: 24 }, (_, h) => h);
+
 const QUARTER_SLOTS = [':00', ':15', ':30', ':45'];
 
 function App() {
@@ -96,7 +97,7 @@ function App() {
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [slotDate, setSlotDate] = useState<string>('');
-  const [slotBlock, setSlotBlock] = useState<string>('0');
+  const [slotHour, setSlotHour] = useState<string>('0');
   const [slotMinute, setSlotMinute] = useState<string>('0');
 
   // Load once on mount. Nothing written until hydrated.
@@ -135,29 +136,13 @@ function App() {
     [data.currentStart, now]
   );
 
-  // Start: uses the selected date+time slot + 15-min block
+  // Start: uses the selected date + hour + 15-min slot
   const handleStart = () => {
-    const [d, h, m] = resolveSlot(slotDate, slotBlock, slotMinute);
-    if (!d) return;
-    const startDate = new Date(`${d}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+    if (!slotDate) return;
+    const startDate = new Date(slotDate);
+    startDate.setHours(parseInt(slotHour), parseInt(slotMinute), 0, 0);
     setData(prev => ({ ...prev, currentStart: startDate.toISOString() }));
     setNow(new Date());
-  };
-
-  const resolveSlot = (date: string, hourBlock: string, minSlot: string): [string | null, number, number] => {
-    if (!date) return [null, 0, 0];
-    const d = new Date(date);
-    const hourMap: Record<string, number> = {
-      '0': 0,   // 12am–4am → hour 0
-      '1': 4,   // 4am–8am → hour 4
-      '2': 8,   // 8am–12pm → hour 8
-      '3': 12,  // 12pm–4pm → hour 12
-      '4': 16,  // 4pm–8pm → hour 16
-      '5': 20,  // 8pm–12am → hour 20
-    };
-    const hour = hourMap[hourBlock] ?? 0;
-    const minute = parseInt(minSlot) * 15;
-    return [formatForISO(d), hour, minute];
   };
 
   // Reset: the ONLY way a record is created
@@ -232,31 +217,27 @@ function App() {
         {/* Date+time slot selection */}
         <div className="slot-section">
           <label className="slot-label">Start at</label>
-          <input
-            type="date"
-            value={slotDate}
-            onChange={(e) => setSlotDate(e.target.value)}
-            className="slot-input"
-            min="2020-01-01"
-          />
-          <select
-            value={slotBlock}
-            onChange={(e) => setSlotBlock(e.target.value)}
-            className="slot-input"
-          >
-            {HOUR_BLOCKS.map((label, i) => (
-              <option key={i} value={String(i)}>{label}</option>
-            ))}
-          </select>
-          <select
-            value={slotMinute}
-            onChange={(e) => setSlotMinute(e.target.value)}
-            className="slot-input"
-          >
-            {QUARTER_SLOTS.map((label, i) => (
-              <option key={i} value={String(i * 15)}>{label}</option>
-            ))}
-          </select>
+          <div className="slot-row">
+            <select value={slotDate} onChange={(e) => setSlotDate(e.target.value)} className="slot-input">
+              <option value="">Select date</option>
+              {Array.from({ length: 365 }, (_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - 365 + i);
+                const iso = d.toISOString().slice(0, 10);
+                return <option key={iso} value={iso}>{d.toLocaleDateString()}</option>;
+              })}
+            </select>
+            <select value={slotHour} onChange={(e) => setSlotHour(e.target.value)} className="slot-input">
+              {HOUR_SLOTS.map((label, i) => (
+                <option key={i} value={String(i)}>{label}</option>
+              ))}
+            </select>
+            <select value={slotMinute} onChange={(e) => setSlotMinute(e.target.value)} className="slot-input">
+              {QUARTER_SLOTS.map((label, i) => (
+                <option key={i} value={String(i * 15)}>{label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Actions */}

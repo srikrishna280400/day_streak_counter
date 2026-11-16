@@ -97,16 +97,22 @@ body {
   color: #8b8b96;
   text-transform: uppercase;
   letter-spacing: 1.2px;
+  margin-bottom: 0.25rem;
+}
+
+.slot-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
 }
 
 .slot-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.4rem 0.6rem;
   border: 1px solid #2e2e38;
-  border-radius: 10px;
+  border-radius: 6px;
   background: #1c1c24;
   color: #e6e6ea;
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
