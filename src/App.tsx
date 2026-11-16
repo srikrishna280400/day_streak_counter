@@ -12,7 +12,6 @@ interface StreakData {
   currentStart: string | null;
   cumulativeMonthly: Record<string, number>;
   cumulativeYearly: Record<string, number>;
-  autoRecordedAt: string | null;
 }
 
 const STORAGE_KEY = 'dayCounterData';
@@ -23,12 +22,10 @@ function emptyData(): StreakData {
     records: [],
     currentStart: null,
     cumulativeMonthly: {},
-    cumulativeYearly: {},
-    autoRecordedAt: null
+    cumulativeYearly: {}
   };
 }
 
-// Normalize whatever is in storage (old or new schema) into the current shape
 function normalize(raw: unknown): StreakData {
   if (!raw || typeof raw !== 'object') return emptyData();
   const r = raw as Record<string, any>;
@@ -48,8 +45,7 @@ function normalize(raw: unknown): StreakData {
     records,
     currentStart: typeof r.currentStart === 'string' ? r.currentStart : null,
     cumulativeMonthly: r.cumulativeMonthly && typeof r.cumulativeMonthly === 'object' ? r.cumulativeMonthly : {},
-    cumulativeYearly: r.cumulativeYearly && typeof r.cumulativeYearly === 'object' ? r.cumulativeYearly : {},
-    autoRecordedAt: null
+    cumulativeYearly: r.cumulativeYearly && typeof r.cumulativeYearly === 'object' ? r.cumulativeYearly : {}
   };
 }
 
@@ -81,19 +77,26 @@ function elapsedSeconds(startISO: string, now: Date = new Date()): number {
 function monthKey(date: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric', month: '2-digit' })
     .format(date)
-    .slice(0, 7); // YYYY-MM
+    .slice(0, 7);
 }
 
 function yearKey(date: Date): string {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata', year: 'numeric' }).format(date);
 }
 
+// Format a Date as YYYY-MM-DDTHH:MM for <input type="datetime-local"> (local time = IST)
+function formatForDatetimeLocal(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 function App() {
   const [data, setData] = useState<StreakData>(emptyData);
   const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => new Date());
+  const [slotValue, setSlotValue] = useState<string>('');
 
-  // ---- Load once on mount. Nothing is written to storage until hydrated. ----
+  // Load once on mount. Nothing written until hydrated.
   useEffect(() => {
     let loaded = emptyData();
     try {
@@ -104,9 +107,11 @@ function App() {
     }
     setData(loaded);
     setHydrated(true);
+    // Pre-fill the datetime slot with "now" so user can adjust it
+    setSlotValue(formatForDatetimeLocal(new Date()));
   }, []);
 
-  // ---- Persist only after hydration, so we never clobber saved data ----
+  // Persist only after hydration
   useEffect(() => {
     if (!hydrated) return;
     try {
@@ -114,7 +119,7 @@ function App() {
     } catch {}
   }, [data, hydrated]);
 
-  // ---- Drive re-renders every second while a streak is active ----
+  // Re-render every second while streak is active
   const isRunning = data.currentStart !== null;
   useEffect(() => {
     if (!isRunning) return;
@@ -127,13 +132,15 @@ function App() {
     [data.currentStart, now]
   );
 
-  // ---- Start: only creates a start timestamp. No record. ----
+  // Start: uses the selected date+time slot
   const handleStart = () => {
-    setData(prev => ({ ...prev, currentStart: new Date().toISOString() }));
+    const selected = slotValue || new Date().toISOString();
+    const startDate = new Date(selected);
+    setData(prev => ({ ...prev, currentStart: startDate.toISOString() }));
     setNow(new Date());
   };
 
-  // ---- Reset (the ONLY way a record is created) ----
+  // Reset: the ONLY way a record is created
   const handleReset = () => {
     if (!data.currentStart) return;
     const end = new Date();
@@ -152,6 +159,7 @@ function App() {
       cumulativeMonthly: { ...prev.cumulativeMonthly, [m]: (prev.cumulativeMonthly[m] || 0) + 1 },
       cumulativeYearly: { ...prev.cumulativeYearly, [y]: (prev.cumulativeYearly[y] || 0) + 1 }
     }));
+    setSlotValue(formatForDatetimeLocal(new Date()));
   };
 
   const handleDelete = (id: number) => {
@@ -197,8 +205,20 @@ function App() {
           <div className="timestamp">
             {isRunning && data.currentStart
               ? `Started ${toIST(new Date(data.currentStart))}`
-              : 'Press Start to begin a new streak'}
+              : 'Pick a date+time below, then press Start'}
           </div>
+        </div>
+
+        {/* Date+time slot selection */}
+        <div className="slot-section">
+          <label className="slot-label">Start at</label>
+          <input
+            type="datetime-local"
+            value={slotValue}
+            onChange={(e) => setSlotValue(e.target.value)}
+            className="slot-input"
+            min="2020-01-01T00:00"
+          />
         </div>
 
         {/* Actions */}
