@@ -83,7 +83,7 @@ body {
   line-height: 1.4;
 }
 
-/* ===== Slot input ===== */
+/* ===== Custom Slot Dropdowns ===== */
 .slot-section {
   display: flex;
   flex-direction: column;
@@ -107,26 +107,68 @@ body {
   align-items: center;
 }
 
-.slot-input {
-  padding: 0.4rem 0.6rem;
-  border: 1px solid #2e2e38;
-  border-radius: 6px;
-  background: #1c1c24;
-  color: #e6e6ea;
-  font-size: 0.8rem;
-  font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+/* Custom select wrapper */
+.select-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.slot-input:focus {
+.select-wrapper select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  padding: 0.55rem 2.2rem 0.55rem 0.75rem;
+  border: 1px solid #2e2e38;
+  border-radius: 8px;
+  background: #1c1c24;
+  color: #e6e6ea;
+  font-size: 0.82rem;
+  font-family: inherit;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.select-wrapper select:focus {
   outline: none;
   border-color: #3a3a44;
   box-shadow: 0 0 0 3px rgba(58, 58, 68, 0.4);
+  background: #22222a;
 }
 
-.slot-input::-webkit-calendar-picker-indicator {
-  filter: invert(0.8) opacity(0.7);
-  cursor: pointer;
+.select-wrapper select option {
+  background: #1c1c24;
+  color: #e6e6ea;
+  padding: 0.4rem;
+}
+
+/* Custom dropdown arrow */
+.select-wrapper::after {
+  content: '';
+  position: absolute;
+  right: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #8b8b96;
+}
+
+/* Date dropdown specific - show full date text */
+.select-wrapper.date-dropdown select {
+  font-size: 0.8rem;
+  max-width: 100%;
+}
+
+/* Hour/minute dropdowns - compact */
+.select-wrapper.time-dropdown select {
+  font-size: 0.8rem;
+  text-align: center;
 }
 
 /* ===== Buttons ===== */
@@ -298,4 +340,5 @@ body {
   .card { padding: 1.1rem; border-radius: 14px; }
   .stat-value { font-size: 1.9rem; }
   .title { font-size: 1.1rem; }
+  .slot-row { grid-template-columns: 1fr; }
 }
