@@ -20,7 +20,7 @@ const SCHEMA_VERSION = 2;
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const WEEKDAYS = ['Mo','Tu','We','Th','Fr','Sa','Su'];
 const HOUR_SLOTS = Array.from({ length: 24 }, (_, h) => {
-  const suffix = h < 12 ? 'am' : 'pm';
+  const suffix = h < 12 ? 'AM' : 'PM';
   const twelve = h % 12 === 0 ? 12 : h % 12;
   return `${twelve}${suffix}`;
 });
