@@ -135,6 +135,178 @@ body {
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
+/* ===== Date trigger ===== */
+.date-trigger {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.date-trigger:hover {
+  border-color: #475569;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.date-trigger-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-trigger-chevron {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  line-height: 1;
+  margin-left: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* ===== Picker panel ===== */
+.picker-panel {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  min-height: 32px;
+}
+
+.picker-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #f1f5f9;
+}
+
+.picker-nav {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.nav-btn {
+  background: transparent;
+  border: 1px solid #334155;
+  border-radius: 7px;
+  color: #cbd5e1;
+  width: 30px;
+  height: 30px;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.nav-btn:hover {
+  background: #334155;
+  border-color: #475569;
+  color: #f1f5f9;
+}
+
+.nav-btn.back { margin-right: auto; }
+
+/* Month grid: 4 x 3 square blocks */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+/* Square tiles */
+.sq-tile {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #94a3b8;
+  background: #18202e;
+  border: 1px solid #2b3a4f;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.sq-tile:hover {
+  background: #263449;
+  border-color: #3d526e;
+  color: #f1f5f9;
+}
+
+.sq-tile.active {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.sq-tile.today {
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+
+.sq-tile.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Weekday header row */
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.weekday {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #64748b;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* Date grid: 7 columns of square blocks */
+.date-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.25rem;
+}
+
+.date-grid .sq-tile {
+  font-size: 0.78rem;
+  border-radius: 7px;
+}
+
+/* Hour / Minute selects */
+.time-selects {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 /* ===== Buttons ===== */
 .buttons {
   display: flex;
