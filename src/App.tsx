@@ -106,6 +106,7 @@ function App() {
   const [endHour, setEndHour] = useState<string>('0');
   const [endMinute, setEndMinute] = useState<string>('0');
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [showEndCalendar, setShowEndCalendar] = useState(false);
   const [endPickerView, setEndPickerView] = useState<'months' | 'dates'>('months');
   const [endPickerYear, setEndPickerYear] = useState(() => new Date().getFullYear());
   const [endPickerMonth, setEndPickerMonth] = useState(() => new Date().getMonth());
@@ -369,13 +370,6 @@ function App() {
                 <div className="end-picker-section">
                   <label className="slot-label">End at</label>
 
-                  {/* End date trigger - same toggle as start */}
-                  <button type="button" className={`date-trigger ${showEndPicker ? 'open' : ''}`} onClick={() => setShowEndPicker(!showEndPicker)}>
-                    <span className="date-trigger-text">{endDateDisplay}</span>
-                    <span className="date-trigger-chevron">{showEndPicker ? '▲' : '▾'}</span>
-                  </button>
-
-                  {/* End date picker panel */}
                   {/* End date trigger - toggles only the calendar grid */}
                   <button type="button" className={`date-trigger ${showEndCalendar ? 'open' : ''}`} onClick={() => setShowEndCalendar(!showEndCalendar)}>
                     <span className="date-trigger-text">{endDateDisplay}</span>
