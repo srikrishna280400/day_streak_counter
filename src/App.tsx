@@ -51,7 +51,7 @@ function normalize(raw: unknown): StreakData {
 }
 
 function toIST(date: Date): string {
-  return new Intl.DateTimeFormat('en-IN', {
+  const options = {
     timeZone: 'Asia/Kolkata',
     year: 'numeric',
     month: 'short',
@@ -59,7 +59,9 @@ function toIST(date: Date): string {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
-  }).format(date) + ' IST';
+  };
+  const formatted = new Intl.DateTimeFormat('en-IN', options).format(date);
+  return formatted.replace(/\b(am|pm)\b/gi, (m) => m.toUpperCase()) + ' IST';
 }
 
 function formatDuration(seconds: number): string {
