@@ -104,6 +104,12 @@ function App() {
   const [pickerYear, setPickerYear] = useState(() => new Date().getFullYear());
   const [pickerMonth, setPickerMonth] = useState(() => new Date().getMonth());
 
+  // End-time picker for resetting streak
+  const [endDate, setEndDate] = useState<string>('');
+  const [endHour, setEndHour] = useState<string>('0');
+  const [endMinute, setEndMinute] = useState<string>('0');
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
   useEffect(() => {
     let loaded = emptyData();
     try {
@@ -144,6 +150,14 @@ function App() {
     setPickerOpen(true);
   };
 
+  const openEndPicker = () => {
+    const now = new Date();
+    setEndDate(isoFor(now.getFullYear(), now.getMonth(), now.getDate()));
+    setEndHour(String(now.getHours()));
+    setEndMinute(String(Math.floor(now.getMinutes() / 15) * 15));
+    setShowEndPicker(true);
+  };
+
   const handleStart = () => {
     if (!selectedDate) return;
     const startDate = new Date(selectedDate);
@@ -153,8 +167,13 @@ function App() {
   };
 
   const handleReset = () => {
-    if (!data.currentStart) return;
-    const end = new Date();
+    openEndPicker();
+  };
+
+  const handleResetWithEnd = () => {
+    if (!data.currentStart || !endDate) return;
+    const end = new Date(endDate);
+    end.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
     const record: StreakRecord = {
       id: Date.now(),
       startDate: data.currentStart,
@@ -169,6 +188,7 @@ function App() {
       cumulativeMonthly: { ...prev.cumulativeMonthly, [m]: (prev.cumulativeMonthly[m] || 0) + 1 },
       cumulativeYearly: { ...prev.cumulativeYearly, [y]: (prev.cumulativeYearly[y] || 0) + 1 }
     }));
+    setShowEndPicker(false);
     const t = new Date();
     setSelectedDate(isoFor(t.getFullYear(), t.getMonth(), t.getDate()));
   };
@@ -220,6 +240,10 @@ function App() {
     ? `${new Date(selectedDate).getDate()} ${MONTHS[new Date(selectedDate).getMonth()]} ${new Date(selectedDate).getFullYear()}`
     : 'Select date';
 
+  const endDateDisplay = endDate
+    ? `${new Date(endDate).getDate()} ${MONTHS[new Date(endDate).getMonth()]} ${new Date(endDate).getFullYear()}`
+    : 'Select date';
+
   return (
     <div className="container">
       <div className="card">
@@ -240,8 +264,8 @@ function App() {
         <div className="slot-section">
           <label className="slot-label">Start at</label>
 
-          {/* Date trigger - toggle on/off like hour/minute dropdowns */}
-          <button type="button" className={`date-trigger ${pickerOpen ? 'open' : ''}`} onClick={() => setPickerOpen(!pickerOpen)}>
+          {/* Date trigger */}
+          <button type="button" className={`date-trigger ${pickerOpen ? 'open' : ''}`} onClick={openPicker}>
             <span className="date-trigger-text">{selectedDisplay}</span>
             <span className="date-trigger-chevron">{pickerOpen ? '▲' : '▾'}</span>
           </button>
@@ -305,7 +329,7 @@ function App() {
             </div>
           )}
 
-          {/* Hour + Minute selects (unchanged) */}
+          {/* Hour + Minute selects */}
           <div className="time-selects">
             <select value={selectedHour} onChange={(e) => setSelectedHour(e.target.value)} className="slot-input">
               {HOUR_SLOTS.map((label, i) => (
@@ -325,7 +349,36 @@ function App() {
           {!isRunning ? (
             <button onClick={handleStart} className="btn btn-start">Start Streak</button>
           ) : (
-            <button onClick={handleReset} className="btn btn-reset">Reset Streak (broken)</button>
+            <>
+              <button onClick={handleReset} className="btn btn-reset">Reset Streak (broken)</button>
+              {showEndPicker && (
+                <div className="end-picker-section">
+                  <label className="slot-label">End at</label>
+                  <div className="time-selects">
+                    <select value={endDate} onChange={(e) => setEndDate(e.target.value)} className="slot-input">
+                      <option value="">Select date</option>
+                      {Array.from({ length: 365 }, (_, i) => {
+                        const d = new Date();
+                        d.setDate(d.getDate() - 365 + i);
+                        const iso = d.toISOString().slice(0, 10);
+                        return <option key={iso} value={iso}>{d.toLocaleDateString()}</option>;
+                      })}
+                    </select>
+                    <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="slot-input">
+                      {HOUR_SLOTS.map((label, i) => (
+                        <option key={i} value={String(i)}>{label}</option>
+                      ))}
+                    </select>
+                    <select value={endMinute} onChange={(e) => setEndMinute(e.target.value)} className="slot-input">
+                      {QUARTER_SLOTS.map((label, i) => (
+                        <option key={i} value={String(i * 15)}>{label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button onClick={handleResetWithEnd} className="btn btn-start">Confirm Reset</button>
+                </div>
+              )}
+            </>
           )}
         </div>
 
