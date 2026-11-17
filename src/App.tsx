@@ -376,14 +376,14 @@ function App() {
                   </button>
 
                   {/* End date picker panel */}
-                  {/* End date trigger */}
-                  <button type="button" className={`date-trigger ${showEndPicker ? 'open' : ''}`} onClick={() => setShowEndPicker(!showEndPicker)}>
+                  {/* End date trigger - toggles only the calendar grid */}
+                  <button type="button" className={`date-trigger ${showEndCalendar ? 'open' : ''}`} onClick={() => setShowEndCalendar(!showEndCalendar)}>
                     <span className="date-trigger-text">{endDateDisplay}</span>
-                    <span className="date-trigger-chevron">{showEndPicker ? '▲' : '▾'}</span>
+                    <span className="date-trigger-chevron">{showEndCalendar ? '▲' : '▾'}</span>
                   </button>
 
                   {/* End date picker panel */}
-                  {showEndPicker && (
+                  {showEndCalendar && (
                     <div className="picker-panel">
                       {endPickerView === 'months' ? (
                         <>
