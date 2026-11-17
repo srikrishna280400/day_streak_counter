@@ -336,13 +336,13 @@ function App() {
                         >
                           {d}
                         </button>
-                      ))}
-                    ))}
+                      )
+                    )}
                   </div>
                 </>
               )}
             </div>
-          )
+          )}
 
           {/* Hour + Minute selects */}
           <div className="time-selects">
