@@ -97,18 +97,18 @@ function App() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedHour, setSelectedHour] = useState<string>('0');
   const [selectedMinute, setSelectedMinute] = useState<string>('0');
-
-  // Picker state
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [pickerView, setPickerView] = useState<'months' | 'dates'>('months');
   const [pickerYear, setPickerYear] = useState(() => new Date().getFullYear());
   const [pickerMonth, setPickerMonth] = useState(() => new Date().getMonth());
 
-  // End-time picker for resetting streak
   const [endDate, setEndDate] = useState<string>('');
   const [endHour, setEndHour] = useState<string>('0');
   const [endMinute, setEndMinute] = useState<string>('0');
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [endPickerView, setEndPickerView] = useState<'months' | 'dates'>('months');
+  const [endPickerYear, setEndPickerYear] = useState(() => new Date().getFullYear());
+  const [endPickerMonth, setEndPickerMonth] = useState(() => new Date().getMonth());
 
   useEffect(() => {
     let loaded = emptyData();
@@ -147,7 +147,7 @@ function App() {
     setPickerYear(base.getFullYear());
     setPickerMonth(base.getMonth());
     setPickerView('months');
-    setPickerOpen(true);
+    setShowDatePicker(true);
   };
 
   const openEndPicker = () => {
@@ -155,6 +155,9 @@ function App() {
     setEndDate(isoFor(now.getFullYear(), now.getMonth(), now.getDate()));
     setEndHour(String(now.getHours()));
     setEndMinute(String(Math.floor(now.getMinutes() / 15) * 15));
+    setEndPickerYear(now.getFullYear());
+    setEndPickerMonth(now.getMonth());
+    setEndPickerView('months');
     setShowEndPicker(true);
   };
 
@@ -222,7 +225,6 @@ function App() {
   const currentMonth = monthKey(now);
   const currentYear = yearKey(now);
 
-  // Date grid for pickerMonth/pickerYear (Monday-first)
   const dateCells = useMemo(() => {
     const first = new Date(pickerYear, pickerMonth, 1);
     const daysInMonth = new Date(pickerYear, pickerMonth + 1, 0).getDate();
@@ -264,7 +266,7 @@ function App() {
         <div className="slot-section">
           <label className="slot-label">Start at</label>
 
-          {/* Date trigger */}
+          {/* Date trigger - toggle dropdown on/off */}
           <button type="button" className={`date-trigger ${pickerOpen ? 'open' : ''}`} onClick={openPicker}>
             <span className="date-trigger-text">{selectedDisplay}</span>
             <span className="date-trigger-chevron">{pickerOpen ? '▲' : '▾'}</span>
@@ -298,7 +300,7 @@ function App() {
               ) : (
                 <>
                   <div className="picker-header">
-                    <button type="button" className="nav-btn back" onClick={() => setPickerView('months')}>‹</button>
+                    <button type="button" className="nav-btn back" onClick={() => setPickerView('months')}>←</button>
                     <span className="picker-title">{MONTHS[pickerMonth]} {pickerYear}</span>
                     <div className="picker-nav">
                       <button type="button" className="nav-btn" onClick={() => { const d = new Date(pickerYear, pickerMonth - 1, 1); setPickerYear(d.getFullYear()); setPickerMonth(d.getMonth()); }}>‹</button>
@@ -321,13 +323,13 @@ function App() {
                         >
                           {d}
                         </button>
-                      )
-                    )}
+                      )}
+                    ))}
                   </div>
                 </>
               )}
             </div>
-          )}
+          )
 
           {/* Hour + Minute selects */}
           <div className="time-selects">
