@@ -238,6 +238,18 @@ function App() {
 
   const todayIso = isoFor(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
 
+  // End date grid cells
+  const endDateCells = useMemo(() => {
+    const first = new Date(endPickerYear, endPickerMonth, 1);
+    const daysInMonth = new Date(endPickerYear, endPickerMonth + 1, 0).getDate();
+    const lead = (first.getDay() + 6) % 7;
+    const cells: (number | null)[] = [];
+    for (let i = 0; i < lead; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
+  }, [endPickerYear, endPickerMonth]);
+
   const selectedDisplay = selectedDate
     ? `${new Date(selectedDate).getDate()} ${MONTHS[new Date(selectedDate).getMonth()]} ${new Date(selectedDate).getFullYear()}`
     : 'Select date';
@@ -267,13 +279,13 @@ function App() {
           <label className="slot-label">Start at</label>
 
           {/* Date trigger - toggle dropdown on/off */}
-          <button type="button" className={`date-trigger ${pickerOpen ? 'open' : ''}`} onClick={openPicker}>
+          <button type="button" className={`date-trigger ${showDatePicker ? 'open' : ''}`} onClick={() => setShowDatePicker(!showDatePicker)}>
             <span className="date-trigger-text">{selectedDisplay}</span>
-            <span className="date-trigger-chevron">{pickerOpen ? '▲' : '▾'}</span>
+            <span className="date-trigger-chevron">{showDatePicker ? '▲' : '▾'}</span>
           </button>
 
           {/* Picker panel */}
-          {pickerOpen && (
+          {showDatePicker && (
             <div className="picker-panel">
               {pickerView === 'months' ? (
                 <>
@@ -319,7 +331,7 @@ function App() {
                           key={i}
                           type="button"
                           className={`sq-tile ${isoFor(pickerYear, pickerMonth, d) === selectedDate ? 'active' : ''} ${isoFor(pickerYear, pickerMonth, d) === todayIso ? 'today' : ''}`}
-                          onClick={() => { setSelectedDate(isoFor(pickerYear, pickerMonth, d)); setPickerOpen(false); }}
+                          onClick={() => { setSelectedDate(isoFor(pickerYear, pickerMonth, d)); setShowDatePicker(false); }}
                         >
                           {d}
                         </button>
@@ -352,20 +364,85 @@ function App() {
             <button onClick={handleStart} className="btn btn-start">Start Streak</button>
           ) : (
             <>
-              <button onClick={handleReset} className="btn btn-reset">Reset Streak (broken)</button>
+              <button onClick={() => setShowEndPicker(!showEndPicker)} className="btn btn-reset">Reset Streak (broken)</button>
               {showEndPicker && (
                 <div className="end-picker-section">
                   <label className="slot-label">End at</label>
+
+                  {/* End date trigger - same toggle as start */}
+                  <button type="button" className={`date-trigger ${showEndPicker ? 'open' : ''}`} onClick={() => setShowEndPicker(!showEndPicker)}>
+                    <span className="date-trigger-text">{endDateDisplay}</span>
+                    <span className="date-trigger-chevron">{showEndPicker ? '▲' : '▾'}</span>
+                  </button>
+
+                  {/* End date picker panel */}
+                  {/* End date trigger */}
+                  <button type="button" className={`date-trigger ${showEndPicker ? 'open' : ''}`} onClick={() => setShowEndPicker(!showEndPicker)}>
+                    <span className="date-trigger-text">{endDateDisplay}</span>
+                    <span className="date-trigger-chevron">{showEndPicker ? '▲' : '▾'}</span>
+                  </button>
+
+                  {/* End date picker panel */}
+                  {showEndPicker && (
+                    <div className="picker-panel">
+                      {endPickerView === 'months' ? (
+                        <>
+                          <div className="picker-header">
+                            <span className="picker-title">{endPickerYear}</span>
+                            <div className="picker-nav">
+                              <button type="button" className="nav-btn" onClick={() => setEndPickerYear(y => y - 1)}>‹</button>
+                              <button type="button" className="nav-btn" onClick={() => setEndPickerYear(y => y + 1)}>›</button>
+                            </div>
+                          </div>
+                          <div className="month-grid">
+                            {MONTHS.map((name, i) => (
+                              <button
+                                key={name}
+                                type="button"
+                                className={`sq-tile ${endPickerMonth === i ? 'active' : ''}`}
+                                onClick={() => { setEndPickerMonth(i); setEndPickerView('dates'); }}
+                              >
+                                {name}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="picker-header">
+                            <button type="button" className="nav-btn back" onClick={() => setEndPickerView('months')}>←</button>
+                            <span className="picker-title">{MONTHS[endPickerMonth]} {endPickerYear}</span>
+                            <div className="picker-nav">
+                              <button type="button" className="nav-btn" onClick={() => { const d = new Date(endPickerYear, endPickerMonth - 1, 1); setEndPickerYear(d.getFullYear()); setEndPickerMonth(d.getMonth()); }}>‹</button>
+                              <button type="button" className="nav-btn" onClick={() => { const d = new Date(endPickerYear, endPickerMonth + 1, 1); setEndPickerYear(d.getFullYear()); setEndPickerMonth(d.getMonth()); }}>›</button>
+                            </div>
+                          </div>
+                          <div className="weekday-row">
+                            {WEEKDAYS.map(w => <span key={w} className="weekday">{w}</span>)}
+                          </div>
+                          <div className="date-grid">
+                            {endDateCells.map((d, i) =>
+                              d === null ? (
+                                <span key={`e${i}`} className="sq-tile empty" />
+                              ) : (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  className={`sq-tile ${isoFor(endPickerYear, endPickerMonth, d) === endDate ? 'active' : ''} ${isoFor(endPickerYear, endPickerMonth, d) === todayIso ? 'today' : ''}`}
+                                  onClick={() => { setEndDate(isoFor(endPickerYear, endPickerMonth, d)); setShowEndPicker(false); }}
+                                >
+                                  {d}
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Hour + Minute selects */}
                   <div className="time-selects">
-                    <select value={endDate} onChange={(e) => setEndDate(e.target.value)} className="slot-input">
-                      <option value="">Select date</option>
-                      {Array.from({ length: 365 }, (_, i) => {
-                        const d = new Date();
-                        d.setDate(d.getDate() - 365 + i);
-                        const iso = d.toISOString().slice(0, 10);
-                        return <option key={iso} value={iso}>{d.toLocaleDateString()}</option>;
-                      })}
-                    </select>
                     <select value={endHour} onChange={(e) => setEndHour(e.target.value)} className="slot-input">
                       {HOUR_SLOTS.map((label, i) => (
                         <option key={i} value={String(i)}>{label}</option>
@@ -377,6 +454,7 @@ function App() {
                       ))}
                     </select>
                   </div>
+
                   <button onClick={handleResetWithEnd} className="btn btn-start">Confirm Reset</button>
                 </div>
               )}
