@@ -336,7 +336,7 @@ function App() {
                         >
                           {d}
                         </button>
-                      )}
+                      ))}
                     ))}
                   </div>
                 </>
