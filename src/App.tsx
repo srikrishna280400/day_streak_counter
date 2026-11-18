@@ -12,10 +12,15 @@ interface StreakData {
   currentStart: string | null;
   cumulativeMonthly: Record<string, number>;
   cumulativeYearly: Record<string, number>;
+  updatedAt?: number;
 }
 
 const STORAGE_KEY = "dayCounterData";
 const SCHEMA_VERSION = 2;
+
+// Relative path — Vercel rewrites /api/* to the Render backend (vercel.json).
+// In dev, vite.config.ts proxies /api to the same backend.
+const API_BASE = "";
 
 const MONTHS = [
   "Jan",
@@ -124,9 +129,41 @@ function isoFor(y: number, m: number, d: number): string {
   return `${y}-${pad(m + 1)}-${pad(d)}`;
 }
 
-function App() {
+async function loadStreakData(): Promise<StreakData> {
+  try {
+    const response = await fetch(`${API_BASE}/api/streak`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return emptyData();
+    const data = await response.json();
+    if (!data) return emptyData();
+    return normalize(data);
+  } catch (error) {
+    console.error("❌ Failed to load streak data:", error);
+    return emptyData();
+  }
+}
+
+function saveStreakData(data: StreakData): void {
+  try {
+    fetch(`${API_BASE}/api/streak`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      keepalive: true,
+    });
+  } catch (error) {
+    console.error("❌ Failed to save streak data:", error);
+  }
+}
+
+function syncDataToServer(data: StreakData): void {
+  saveStreakData(data);
+  console.log("✅ Synced streak data to server");
+}
+
+const App: React.FC = () => {
   const [data, setData] = useState<StreakData>(emptyData);
-  const [hydrated, setHydrated] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedHour, setSelectedHour] = useState<string>("0");
@@ -151,17 +188,9 @@ function App() {
     new Date().getMonth(),
   );
 
+  // Load from server on first mount
   useEffect(() => {
-    let loaded = emptyData();
-    try {
-      const raw =
-        localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem("streakData");
-      if (raw) loaded = normalize(JSON.parse(raw));
-    } catch {
-      loaded = emptyData();
-    }
-    setData(loaded);
-    setHydrated(true);
+    loadStreakData().then(setData);
     setSelectedDate(
       isoFor(
         new Date().getFullYear(),
@@ -171,15 +200,19 @@ function App() {
     );
   }, []);
 
+  // Persist to server whenever data changes
   useEffect(() => {
-    if (!hydrated) return;
-    try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ ...data, _v: SCHEMA_VERSION }),
-      );
-    } catch {}
-  }, [data, hydrated]);
+    syncDataToServer(data);
+  }, [data]);
+
+  // Periodic sync while streak is running
+  useEffect(() => {
+    if (!data.currentStart) return;
+    const interval = setInterval(() => {
+      syncDataToServer(data);
+    }, 15_000); // every 15 seconds
+    return () => clearInterval(interval);
+  }, [data.currentStart]);
 
   const isRunning = data.currentStart !== null;
   useEffect(() => {
@@ -784,6 +817,6 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
 export default App;

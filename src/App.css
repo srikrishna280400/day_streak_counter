@@ -1,10 +1,17 @@
 /* ===== Base ===== */
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-html { -webkit-tap-highlight-color: transparent; }
+html {
+  -webkit-tap-highlight-color: transparent;
+}
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   background: #0d0d12;
   color: #e6e6ea;
@@ -38,9 +45,9 @@ body {
 }
 
 .mono {
-  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum';
+  font-feature-settings: "tnum";
 }
 
 /* ===== Current streak ===== */
@@ -51,7 +58,9 @@ body {
   padding: 1.75rem 1.25rem;
   text-align: center;
   margin-bottom: 1.25rem;
-  transition: border-color 0.3s, transform 0.2s;
+  transition:
+    border-color 0.3s,
+    transform 0.2s;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -157,7 +166,9 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -201,8 +212,14 @@ body {
 
 /* ===== Animations ===== */
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .picker-header {
@@ -234,7 +251,9 @@ body {
   font-size: 0.95rem;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .nav-btn:hover {
@@ -243,7 +262,9 @@ body {
   color: #f1f5f9;
 }
 
-.nav-btn.back { margin-right: auto; }
+.nav-btn.back {
+  margin-right: auto;
+}
 
 /* Month grid: 4 x 3 square blocks */
 .month-grid {
@@ -266,7 +287,10 @@ body {
   border: 1px solid #2b3a4f;
   cursor: pointer;
   padding: 0;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .sq-tile:hover {
@@ -408,11 +432,20 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); }
-.btn:active { transform: translateY(0); }
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+.btn:active {
+  transform: translateY(0);
+}
 
-.btn-start  { background: linear-gradient(135deg, #22c55e, #16a34a); }
-.btn-reset  { background: linear-gradient(135deg, #334155, #1e293b); }
+.btn-start {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+.btn-reset {
+  background: linear-gradient(135deg, #334155, #1e293b);
+}
 
 /* ===== Last streak ===== */
 .last-streak {
@@ -424,9 +457,15 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.last-streak .stat-label { margin-bottom: 0.45rem; }
-.last-streak .stat-value { font-size: 1.5rem; }
-.last-streak .timestamp { margin-top: 0.45rem; }
+.last-streak .stat-label {
+  margin-bottom: 0.45rem;
+}
+.last-streak .stat-value {
+  font-size: 1.5rem;
+}
+.last-streak .timestamp {
+  margin-top: 0.45rem;
+}
 
 /* ===== Cumulative ===== */
 .cumulative-section {
@@ -481,7 +520,9 @@ body {
 }
 
 /* ===== Past streaks ===== */
-.records-section { margin-top: 1.35rem; }
+.records-section {
+  margin-top: 1.35rem;
+}
 
 .records-list {
   display: flex;
@@ -506,7 +547,10 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.record-info { flex: 1; min-width: 0; }
+.record-info {
+  flex: 1;
+  min-width: 0;
+}
 
 .record-duration {
   font-size: 0.95rem;
@@ -553,15 +597,36 @@ body {
 }
 
 /* ===== Scrollbar ===== */
-.records-list::-webkit-scrollbar { width: 6px; }
-.records-list::-webkit-scrollbar-track { background: transparent; }
-.records-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-.records-list::-webkit-scrollbar-thumb:hover { background: #475569; }
+.records-list::-webkit-scrollbar {
+  width: 6px;
+}
+.records-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.records-list::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+.records-list::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
 
 @media (max-width: 480px) {
-  body { padding: 1rem 0.75rem; }
-  .card { padding: 1.25rem; border-radius: 16px; }
-  .stat-value { font-size: 2rem; }
-  .title { font-size: 1.2rem; }
-  .slot-row, .time-selects { grid-template-columns: 1fr; }
+  body {
+    padding: 1rem 0.75rem;
+  }
+  .card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+  .stat-value {
+    font-size: 2rem;
+  }
+  .title {
+    font-size: 1.2rem;
+  }
+  .slot-row,
+  .time-selects {
+    grid-template-columns: 1fr;
+  }
 }
