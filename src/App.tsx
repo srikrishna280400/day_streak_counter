@@ -17,6 +17,13 @@ interface StreakData {
 
 const STORAGE_KEY = "dayCounterData";
 const SCHEMA_VERSION = 2;
+const EMPTY_DATA = {
+  records: [],
+  currentStart: null,
+  cumulativeMonthly: {},
+  cumulativeYearly: {},
+  updatedAt: 0,
+};
 
 // Relative path — Vercel rewrites /api/* to the Render backend (vercel.json).
 // In dev, vite.config.ts proxies /api to the same backend.
@@ -202,6 +209,7 @@ const App: React.FC = () => {
 
   // Persist to server whenever data changes
   useEffect(() => {
+    if (data.records.length === 0 && data.currentStart === null) return;
     syncDataToServer(data);
   }, [data]);
 
