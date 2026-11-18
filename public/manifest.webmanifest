@@ -9,8 +9,14 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/mobile-app-icon-for-a-streak-tracker-app--a-chain-.png",
-      "sizes": "837x1024",
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable any"
     }

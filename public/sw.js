@@ -1,13 +1,14 @@
 // Day Counter PWA Service Worker — v2
 // Network-first for HTML, cache-first for static assets
 
-const CACHE_NAME = 'day-counter-v18';
+const CACHE_NAME = 'day-counter-v19';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
-  '/src/main.tsx',
-  '/src/App.css'
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/icons/mobile-app-icon-for-a-streak-tracker-app--a-chain-.png'
 ];
 
 self.addEventListener('install', (event) => {
