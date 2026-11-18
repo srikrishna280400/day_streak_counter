@@ -57,6 +57,7 @@ function emptyData(): StreakData {
     currentStart: null,
     cumulativeMonthly: {},
     cumulativeYearly: {},
+    updatedAt: 0,
   };
 }
 
@@ -209,7 +210,7 @@ const App: React.FC = () => {
 
   // Persist to server whenever data changes
   useEffect(() => {
-    if (data.records.length === 0 && data.currentStart === null) return;
+    if (!data.currentStart && data.records.length === 0) return;
     syncDataToServer(data);
   }, [data]);
 
