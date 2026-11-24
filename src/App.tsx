@@ -776,8 +776,8 @@ const App: React.FC = () => {
           </div>
 
           {/* Monthly breakdown — past months keep their counts */}
-          <div className="section-title">Monthly Breakdown</div>
-          <div className="cumulative-row">
+          <div className="section-title section-title--breakdown">Monthly Breakdown</div>
+          <div className="cumulative-row monthly-breakdown">
             {monthlyBreakdown.length === 0 ? (
               <div className="cumulative-cell">
                 <div className="cumulative-label">No resets yet</div>
