@@ -327,6 +327,15 @@ const App: React.FC = () => {
   const currentMonth = monthKey(now);
   const currentYear = yearKey(now);
 
+  // Monthly breakdown — every month that has at least one reset
+  const monthlyBreakdown = useMemo(() => {
+    const keys = Object.keys(data.cumulativeMonthly).sort().reverse();
+    return keys.map((key) => ({
+      key,
+      count: data.cumulativeMonthly[key],
+    }));
+  }, [data.cumulativeMonthly]);
+
   const dateCells = useMemo(() => {
     const first = new Date(pickerYear, pickerMonth, 1);
     const daysInMonth = new Date(pickerYear, pickerMonth + 1, 0).getDate();
@@ -764,6 +773,23 @@ const App: React.FC = () => {
                 {data.cumulativeYearly[currentYear] || 0}
               </div>
             </div>
+          </div>
+
+          {/* Monthly breakdown — past months keep their counts */}
+          <div className="section-title">Monthly Breakdown</div>
+          <div className="cumulative-row">
+            {monthlyBreakdown.length === 0 ? (
+              <div className="cumulative-cell">
+                <div className="cumulative-label">No resets yet</div>
+              </div>
+            ) : (
+              monthlyBreakdown.map((m) => (
+                <div key={m.key} className="cumulative-cell">
+                  <div className="cumulative-label">{m.key}</div>
+                  <div className="cumulative-value">{m.count}</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
